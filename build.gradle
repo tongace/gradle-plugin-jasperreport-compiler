@@ -1,0 +1,73 @@
+plugins {
+    id 'com.gradle.plugin-publish' version '1.1.0'
+    id 'net.researchgate.release' version '3.0.2'
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id "io.github.gradle-nexus.publish-plugin" version "1.3.0"
+}
+
+group = 'org.tongace.projects'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://jaspersoft.jfrog.io/jaspersoft/third-party-ce-artifacts/"
+        allowInsecureProtocol true
+    }
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+    implementation 'net.sf.jasperreports:jasperreports:6.20.0'
+    implementation 'org.codehaus.gpars:gpars:1.2.1'
+    testImplementation 'junit:junit:4.12'
+}
+
+gradlePlugin {
+    website = 'https://github.com/tongace/gradle-plugin-jasperreport-compiler'
+    vcsUrl = 'https://github.com/tongace/gradle-plugin-jasperreport-compiler.git'
+    plugins {
+        jasperreports {
+            id = 'org.tongace.projects.jasperreport.compiler'
+            displayName = 'Jasper Report complier'
+            description= 'Jasper report complier supoort gradle 8'
+            tags.set(['tags', 'gradle 8', 'jasper compliler', 'plugins'])
+            implementationClass = 'org.tongace.projects.jasperreport.compiler.plugins.JasperReportsPlugin'
+        }
+    }
+}
+
+compileGroovy {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.register('sourcesJar', Jar) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+
+tasks.register('groovydocJar', Jar) {
+    dependsOn groovydoc
+    archiveClassifier.set('groovydoc')
+    from groovydoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives groovydocJar
+}
+
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("http://212.80.213.127:8085/repository/maven-public/"))
+            snapshotRepositoryUrl.set(uri("http://212.80.213.127:8085/repository/maven-public/"))
+            username = gradle.properties["repoUser"]
+            password = gradle.properties["repoPassword"]
+        }
+    }
+}
+
